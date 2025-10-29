@@ -178,7 +178,6 @@ const getQuery = (request: FastifyRequest<GetSingleColRequest>, isCountQuery: bo
   if (parameter === "exit_page" || parameter === "entry_page") {
     const isEntry = parameter === "entry_page";
     const orderDirection = isEntry ? "ASC" : "DESC";
-    const rowNumFilter = isEntry ? "row_num = 1" : "row_num = 1";
 
     const baseCteQuery = `
       SessionPageCounts AS (
@@ -228,7 +227,7 @@ const getQuery = (request: FastifyRequest<GetSingleColRequest>, isCountQuery: bo
       FilteredDurations AS (
           SELECT *
           FROM PageDurations
-          WHERE ${rowNumFilter}
+          WHERE row_num = 1
       ),
       PathStats AS (
           SELECT
