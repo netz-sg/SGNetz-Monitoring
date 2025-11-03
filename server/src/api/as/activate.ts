@@ -148,7 +148,7 @@ export async function activateAppSumoLicense(
 
     // Step 3: Check if license already exists
     const existingLicense = await db.execute(
-      sql`SELECT organization_id FROM as_licenses WHERE license_key = ${licenseData.licenseKey} LIMIT 1`
+      sql`SELECT organization_id FROM appsumo.licenses WHERE license_key = ${licenseData.licenseKey} LIMIT 1`
     );
 
     if (Array.isArray(existingLicense) && existingLicense.length > 0) {
@@ -163,7 +163,7 @@ export async function activateAppSumoLicense(
 
       // License exists as placeholder (from purchase webhook) - update it
       await db.execute(sql`
-        UPDATE as_licenses
+        UPDATE appsumo.licenses
         SET
           organization_id = ${organizationId},
           tier = ${licenseData.tier},
@@ -175,7 +175,7 @@ export async function activateAppSumoLicense(
     } else {
       // Step 4: License doesn't exist - create new record
       await db.execute(sql`
-        INSERT INTO as_licenses (
+        INSERT INTO appsumo.licenses (
           organization_id,
           license_key,
           tier,

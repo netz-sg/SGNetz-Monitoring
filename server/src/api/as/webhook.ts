@@ -96,7 +96,7 @@ export async function handleAppSumoWebhook(
 
     // Log webhook event for audit trail
     await db.execute(sql`
-      INSERT INTO as_webhook_events (
+      INSERT INTO appsumo.webhook_events (
         license_key,
         event,
         payload,
@@ -197,14 +197,14 @@ async function handlePurchaseEvent(
 
   // Check if license already exists
   const existing = await db.execute(
-    sql`SELECT id FROM as_licenses WHERE license_key = ${licenseKey} LIMIT 1`
+    sql`SELECT id FROM appsumo.licenses WHERE license_key = ${licenseKey} LIMIT 1`
   );
 
   if (Array.isArray(existing) && existing.length === 0) {
     // Create placeholder - will be linked to org when user activates
     console.log(`[AppSumo] Creating new pending license ${licenseKey}`);
     await db.execute(sql`
-      INSERT INTO as_licenses (
+      INSERT INTO appsumo.licenses (
         organization_id,
         license_key,
         tier,
@@ -237,7 +237,7 @@ async function handleActivateEvent(licenseKey: string, tier: any) {
   console.log(`[AppSumo] handleActivateEvent - license: ${licenseKey}, tier: ${tierValue}`);
 
   await db.execute(sql`
-    UPDATE as_licenses
+    UPDATE appsumo.licenses
     SET
       status = 'active',
       tier = ${tierValue},
@@ -263,7 +263,7 @@ async function handleUpgradeEvent(licenseKey: string, tier: any, prevLicenseKey?
   // Get the old license to find the organization
   console.log(`[AppSumo] Querying old license: ${prevLicenseKey}`);
   let oldLicenseResult = await db.execute(
-    sql`SELECT organization_id FROM as_licenses WHERE license_key = ${prevLicenseKey} LIMIT 1`
+    sql`SELECT organization_id FROM appsumo.licenses WHERE license_key = ${prevLicenseKey} LIMIT 1`
   );
 
   console.log(`[AppSumo] Old license query result:`, JSON.stringify(oldLicenseResult, null, 2));
@@ -272,7 +272,7 @@ async function handleUpgradeEvent(licenseKey: string, tier: any, prevLicenseKey?
   if (!Array.isArray(oldLicenseResult) || oldLicenseResult.length === 0) {
     console.warn(`[AppSumo] Old license not found: ${prevLicenseKey}, searching for any license with organization as fallback`);
     oldLicenseResult = await db.execute(
-      sql`SELECT organization_id FROM as_licenses WHERE organization_id IS NOT NULL ORDER BY updated_at DESC LIMIT 1`
+      sql`SELECT organization_id FROM appsumo.licenses WHERE organization_id IS NOT NULL ORDER BY updated_at DESC LIMIT 1`
     );
 
     if (!Array.isArray(oldLicenseResult) || oldLicenseResult.length === 0) {
@@ -292,7 +292,7 @@ async function handleUpgradeEvent(licenseKey: string, tier: any, prevLicenseKey?
     console.log(`[AppSumo] Organization exists - creating active license for ${licenseKey}`);
     try {
       await db.execute(sql`
-        INSERT INTO as_licenses (
+        INSERT INTO appsumo.licenses (
           organization_id,
           license_key,
           tier,
@@ -326,7 +326,7 @@ async function handleUpgradeEvent(licenseKey: string, tier: any, prevLicenseKey?
     console.log(`[AppSumo] No organization - creating pending license for ${licenseKey}`);
     try {
       await db.execute(sql`
-        INSERT INTO as_licenses (
+        INSERT INTO appsumo.licenses (
           organization_id,
           license_key,
           tier,
@@ -357,7 +357,7 @@ async function handleUpgradeEvent(licenseKey: string, tier: any, prevLicenseKey?
   console.log(`[AppSumo] Deactivating old license ${prevLicenseKey}`);
   try {
     await db.execute(sql`
-      UPDATE as_licenses
+      UPDATE appsumo.licenses
       SET
         status = 'inactive',
         deactivated_at = NOW(),
@@ -386,7 +386,7 @@ async function handleDowngradeEvent(licenseKey: string, tier: any, prevLicenseKe
   // Get the old license to find the organization
   console.log(`[AppSumo] Querying old license: ${prevLicenseKey}`);
   let oldLicenseResult = await db.execute(
-    sql`SELECT organization_id FROM as_licenses WHERE license_key = ${prevLicenseKey} LIMIT 1`
+    sql`SELECT organization_id FROM appsumo.licenses WHERE license_key = ${prevLicenseKey} LIMIT 1`
   );
 
   console.log(`[AppSumo] Old license query result:`, JSON.stringify(oldLicenseResult, null, 2));
@@ -395,7 +395,7 @@ async function handleDowngradeEvent(licenseKey: string, tier: any, prevLicenseKe
   if (!Array.isArray(oldLicenseResult) || oldLicenseResult.length === 0) {
     console.warn(`[AppSumo] Old license not found: ${prevLicenseKey}, searching for any license with organization as fallback`);
     oldLicenseResult = await db.execute(
-      sql`SELECT organization_id FROM as_licenses WHERE organization_id IS NOT NULL ORDER BY updated_at DESC LIMIT 1`
+      sql`SELECT organization_id FROM appsumo.licenses WHERE organization_id IS NOT NULL ORDER BY updated_at DESC LIMIT 1`
     );
 
     if (!Array.isArray(oldLicenseResult) || oldLicenseResult.length === 0) {
@@ -415,7 +415,7 @@ async function handleDowngradeEvent(licenseKey: string, tier: any, prevLicenseKe
     console.log(`[AppSumo] Organization exists - creating active license for ${licenseKey}`);
     try {
       await db.execute(sql`
-        INSERT INTO as_licenses (
+        INSERT INTO appsumo.licenses (
           organization_id,
           license_key,
           tier,
@@ -449,7 +449,7 @@ async function handleDowngradeEvent(licenseKey: string, tier: any, prevLicenseKe
     console.log(`[AppSumo] No organization - creating pending license for ${licenseKey}`);
     try {
       await db.execute(sql`
-        INSERT INTO as_licenses (
+        INSERT INTO appsumo.licenses (
           organization_id,
           license_key,
           tier,
@@ -480,7 +480,7 @@ async function handleDowngradeEvent(licenseKey: string, tier: any, prevLicenseKe
   console.log(`[AppSumo] Deactivating old license ${prevLicenseKey}`);
   try {
     await db.execute(sql`
-      UPDATE as_licenses
+      UPDATE appsumo.licenses
       SET
         status = 'inactive',
         deactivated_at = NOW(),
@@ -500,7 +500,7 @@ async function handleDowngradeEvent(licenseKey: string, tier: any, prevLicenseKe
 async function handleDeactivateEvent(licenseKey: string) {
   console.log(`[AppSumo] handleDeactivateEvent - license: ${licenseKey}`);
   await db.execute(sql`
-    UPDATE as_licenses
+    UPDATE appsumo.licenses
     SET
       status = 'inactive',
       deactivated_at = NOW(),
@@ -522,7 +522,7 @@ async function handleMigrateEvent(
   console.log(`[AppSumo] handleMigrateEvent - license: ${licenseKey}, tier: ${tierValue}, parent: ${parentLicenseKey}`);
 
   await db.execute(sql`
-    UPDATE as_licenses
+    UPDATE appsumo.licenses
     SET
       tier = ${tierValue},
       parent_license_key = ${parentLicenseKey || null},

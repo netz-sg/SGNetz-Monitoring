@@ -1,8 +1,11 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgSchema, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { organization } from "./schema.js";
 
+// Create the 'appsumo' schema for AppSumo tables
+export const asSchema = pgSchema("appsumo");
+
 // AppSumo licenses table (only created in cloud environments)
-export const asLicenses = pgTable("as_licenses", {
+export const asLicenses = asSchema.table("licenses", {
   id: serial("id").primaryKey().notNull(),
   organizationId: text("organization_id").references(() => organization.id),
   licenseKey: text("license_key").notNull().unique(),
@@ -16,7 +19,7 @@ export const asLicenses = pgTable("as_licenses", {
 });
 
 // Webhook events log for audit trail and idempotency
-export const asWebhookEvents = pgTable("as_webhook_events", {
+export const asWebhookEvents = asSchema.table("webhook_events", {
   id: serial("id").primaryKey().notNull(),
   licenseKey: text("license_key").notNull(),
   event: text("event").notNull(), // 'purchase', 'activate', 'upgrade', 'downgrade', 'deactivate', 'migrate'

@@ -56,7 +56,7 @@ function getStartOfMonth(): string {
 export async function getAppSumoSubscription(organizationId: string): Promise<AppSumoSubscriptionInfo | null> {
   try {
     const appsumoLicense = await db.execute(
-      sql`SELECT tier, status FROM as_licenses WHERE organization_id = ${organizationId} AND status = 'active' LIMIT 1`
+      sql`SELECT tier, status FROM appsumo.licenses WHERE organization_id = ${organizationId} AND status = 'active' LIMIT 1`
     );
 
     if (Array.isArray(appsumoLicense) && appsumoLicense.length > 0) {
