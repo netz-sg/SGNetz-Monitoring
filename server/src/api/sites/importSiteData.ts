@@ -1,6 +1,5 @@
 import { createWriteStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { FastifyRequest, FastifyReply } from "fastify";
@@ -104,7 +103,6 @@ export async function importSiteData(request: FastifyRequest<ImportDataRequest>,
 
     const { platform, startDate, endDate } = parsedFields.data.fields;
     const siteId = Number(site);
-    const importId = randomUUID();
 
     // Check organization and get initial limit check
     const concurrentImportLimitResult = await ImportLimiter.checkConcurrentImportLimit(siteId);
@@ -116,7 +114,6 @@ export async function importSiteData(request: FastifyRequest<ImportDataRequest>,
 
     // Atomically create import status with concurrency check to prevent race conditions
     const createResult = await ImportLimiter.createImportWithConcurrencyCheck({
-      importId,
       siteId,
       organizationId: organization,
       platform,
@@ -126,6 +123,8 @@ export async function importSiteData(request: FastifyRequest<ImportDataRequest>,
     if (!createResult.success) {
       return reply.status(429).send({ error: createResult.reason });
     }
+
+    const importId = createResult.importId;
 
     const storage = getImportStorageLocation(importId, data.filename);
 

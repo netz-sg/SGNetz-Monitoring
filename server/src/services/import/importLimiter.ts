@@ -65,10 +65,10 @@ export class ImportLimiter {
    */
   static async createImportWithConcurrencyCheck(
     data: InsertImportStatus
-  ): Promise<{ success: true } | { success: false; reason: string }> {
+  ): Promise<{ success: true; importId: string } | { success: false; reason: string }> {
     if (!IS_CLOUD) {
-      await db.insert(importStatus).values(data);
-      return { success: true };
+      const [result] = await db.insert(importStatus).values(data).returning({ importId: importStatus.importId });
+      return { success: true, importId: result.importId };
     }
 
     // Use a transaction to atomically check and insert
@@ -92,8 +92,8 @@ export class ImportLimiter {
         };
       }
 
-      await tx.insert(importStatus).values(data);
-      return { success: true };
+      const [result] = await tx.insert(importStatus).values(data).returning({ importId: importStatus.importId });
+      return { success: true, importId: result.importId };
     });
   }
 }
