@@ -33,8 +33,7 @@ interface ImportManagerProps {
   disabled: boolean;
 }
 
-const MAX_FILE_SIZE = IS_CLOUD ? 500 * 1024 * 1024 : 50 * 1024 * 1024 * 1024; // 500 MB for cloud, 50 GB for self-hosted
-const CONFIRM_THRESHOLD = IS_CLOUD ? 100 * 1024 * 1024 : 1024 * 1024 * 1024; // Show confirmation for files > 100 MB (cloud) or > 1 GB (self-hosted)
+const CONFIRM_THRESHOLD = 100 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ["text/csv"];
 const ALLOWED_EXTENSIONS = [".csv"];
 
@@ -42,13 +41,6 @@ const importFormSchema = z.object({
   file: z
     .custom<FileList>()
     .refine(files => files.length === 1, "Please select a file")
-    .refine(
-      files => {
-        const file = files[0];
-        return file && file.size <= MAX_FILE_SIZE;
-      },
-      `File size must be less than ${MAX_FILE_SIZE / 1024 / 1024} MB`
-    )
     .refine(files => {
       const file = files[0];
       if (!file) return false;
@@ -102,7 +94,6 @@ export function ImportManager({ siteId, disabled }: ImportManagerProps) {
   const fileList = watch("file");
   const selectedFile = fileList?.[0];
 
-  // Cleanup worker on component unmount
   useEffect(() => {
     return () => {
       workerManagerRef.current?.terminate();
@@ -125,15 +116,12 @@ export function ImportManager({ siteId, disabled }: ImportManagerProps) {
     const file = data.file[0];
     if (!file) return;
 
-    // Step 1: Create import record and get allowed date range
     createImportMutation.mutate(undefined, {
       onSuccess: response => {
         const { importId, allowedDateRange } = response.data;
 
-        // Step 2: Initialize worker manager
         workerManagerRef.current = new CSVWorkerManager();
 
-        // Step 3: Start CSV parsing and upload with allowed date range
         workerManagerRef.current.startImport(
           file,
           siteId,
@@ -142,7 +130,6 @@ export function ImportManager({ siteId, disabled }: ImportManagerProps) {
           allowedDateRange.latestAllowedDate
         );
 
-        // Reset form
         reset();
       },
       onError: error => {
@@ -235,9 +222,7 @@ export function ImportManager({ siteId, disabled }: ImportManagerProps) {
             <Upload className="h-5 w-5" />
             Import Data
           </CardTitle>
-          <CardDescription>
-            Import data from other analytics platforms. Supports CSV files up to {formatFileSize(MAX_FILE_SIZE)}.
-          </CardDescription>
+          <CardDescription>Import data from other analytics platforms.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Active Import Warning */}
@@ -440,15 +425,7 @@ export function ImportManager({ siteId, disabled }: ImportManagerProps) {
             <AlertDialogTitle>Confirm Large File Import</AlertDialogTitle>
             <AlertDialogDescription>
               You're about to import a large file ({selectedFile ? formatFileSize(selectedFile.size) : "?"}). This may
-              take several minutes to process.
-              {!IS_CLOUD && selectedFile && (
-                <>
-                  {" "}
-                  Ensure your server has at least {Math.ceil((selectedFile.size / 1024 / 1024 / 1024) * 2)} GB of free
-                  disk space.
-                </>
-              )}{" "}
-              Are you sure you want to continue?
+              take several minutes to process. Are you sure you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
