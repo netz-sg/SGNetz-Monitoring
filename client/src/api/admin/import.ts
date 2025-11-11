@@ -41,13 +41,9 @@ export function useCreateSiteImport(site: number) {
 
   return useMutation({
     mutationFn: async () => {
-      return await authedFetch<APIResponse<CreateSiteImportResponse>>(
-        `/create-site-import/${site}`,
-        undefined,
-        {
-          method: "POST",
-        }
-      );
+      return await authedFetch<APIResponse<CreateSiteImportResponse>>(`/create-site-import/${site}`, undefined, {
+        method: "POST",
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
