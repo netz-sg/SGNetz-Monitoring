@@ -12,7 +12,7 @@ import {
   pixelBasedPreset,
 } from "@react-email/components";
 import * as React from "react";
-import type { OrganizationReport, SingleColData } from "../../../services/weekyReports/weeklyReportTypes.js";
+import type { OrganizationReport, MetricData } from "../../../services/weekyReports/weeklyReportTypes.js";
 
 interface WeeklyReportEmailProps {
   userName: string;
@@ -38,8 +38,8 @@ interface TopListItemProps {
 
 interface TopListSectionProps {
   title: string;
-  items: SingleColData[];
-  renderLabel: (item: SingleColData) => React.ReactNode;
+  items: MetricData[];
+  renderLabel: (item: MetricData) => React.ReactNode;
   showFavicon?: boolean;
   labelClassName?: string;
   className?: string;

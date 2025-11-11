@@ -4,7 +4,7 @@ import { FilterParameter } from "./types.js";
 import { getFilterStatement, getSqlParam, getTimeStatement, processResults } from "./utils.js";
 import { FilterParams } from "@rybbit/shared";
 
-interface GetSingleColRequest {
+interface GetMetricRequest {
   Params: {
     site: string;
   };
@@ -15,7 +15,7 @@ interface GetSingleColRequest {
   }>;
 }
 
-type GetSingleColResponse = {
+type GetMetricResponse = {
   value: string;
   // title is only used for pathname
   title?: string;
@@ -30,7 +30,7 @@ type GetSingleColResponse = {
 }[];
 
 // This type represents a single item in the array returned *within* the data property
-type SingleColItem = {
+type MetricItem = {
   value: string;
   title?: string;
   pathname?: string;
@@ -43,12 +43,12 @@ type SingleColItem = {
 };
 
 // This is the structure the API will now send
-type GetSingleColPaginatedResponse = {
-  data: SingleColItem[];
+type GetMetricPaginatedResponse = {
+  data: MetricItem[];
   totalCount: number;
 };
 
-const getQuery = (request: FastifyRequest<GetSingleColRequest>, isCountQuery: boolean = false) => {
+const getQuery = (request: FastifyRequest<GetMetricRequest>, isCountQuery: boolean = false) => {
   const { filters, parameter, limit, page } = request.query;
   const site = request.params.site;
 
@@ -393,7 +393,7 @@ const getQuery = (request: FastifyRequest<GetSingleColRequest>, isCountQuery: bo
   `;
 };
 
-export async function getMetric(req: FastifyRequest<GetSingleColRequest>, res: FastifyReply) {
+export async function getMetric(req: FastifyRequest<GetMetricRequest>, res: FastifyReply) {
   const { parameter, page } = req.query;
   const site = req.params.site;
 
@@ -421,7 +421,7 @@ export async function getMetric(req: FastifyRequest<GetSingleColRequest>, res: F
       }),
     ]);
 
-    const items = await processResults<SingleColItem>(dataResult);
+    const items = await processResults<MetricItem>(dataResult);
     const countData = await processResults<{ totalCount: number }>(countResult);
     const totalCount = countData.length > 0 ? countData[0].totalCount : 0;
 
