@@ -4,9 +4,6 @@ import { getUserHasAdminAccessToSite } from "../../lib/auth-utils.js";
 import { getImportById, deleteImport } from "../../services/import/importStatusManager.js";
 import { clickhouse } from "../../db/clickhouse/clickhouse.js";
 import { importQuotaManager } from "../../services/import/importQuotaManager.js";
-import { db } from "../../db/postgres/postgres.js";
-import { sites } from "../../db/postgres/schema.js";
-import { eq } from "drizzle-orm";
 
 const deleteImportRequestSchema = z
   .object({
@@ -47,55 +44,33 @@ export async function deleteSiteImport(request: FastifyRequest<DeleteImportReque
       return reply.status(403).send({ error: "Import does not belong to this site" });
     }
 
-    // Cannot delete imports that are still in progress
     if (importRecord.completedAt === null) {
       return reply.status(400).send({ error: "Cannot delete active import" });
     }
 
     const siteId = Number(site);
 
-    // Get organization ID for quota manager notification
-    const [siteRecord] = await db
-      .select({ organizationId: sites.organizationId })
-      .from(sites)
-      .where(eq(sites.siteId, siteId))
-      .limit(1);
-
     try {
       await clickhouse.command({
-        query: `DELETE FROM events WHERE import_id = {importId:String} AND site_id = {siteId:UInt16}`,
+        query: "DELETE FROM events WHERE import_id = {importId:UUID} AND site_id = {siteId:UInt16}",
         query_params: {
           importId: importId,
           siteId: siteId,
         },
       });
-      console.log(`Deleted events for import ${importId} from ClickHouse`);
     } catch (chError) {
-      console.error(`Failed to delete ClickHouse events for ${importId}:`, chError);
-      return reply.status(500).send({
-        error: "Failed to delete imported events",
-      });
+      return reply.status(500).send({ error: "Failed to delete imported events" });
     }
 
     try {
       await deleteImport(importId);
     } catch (dbError) {
-      console.error(`Failed to delete import record ${importId}:`, dbError);
-      return reply.status(500).send({
-        error: "Failed to delete import record",
-      });
+      return reply.status(500).send({ error: "Failed to delete import record" });
     }
 
-    // Notify quota manager that import is no longer active
-    if (siteRecord) {
-      importQuotaManager.completeImport(siteRecord.organizationId);
-    }
+    importQuotaManager.completeImport(importRecord.organizationId);
 
-    return reply.send({
-      data: {
-        message: "Import deleted successfully",
-      },
-    });
+    return reply.send();
   } catch (error) {
     console.error("Error deleting import:", error);
     return reply.status(500).send({ error: "Internal server error" });

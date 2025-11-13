@@ -20,10 +20,6 @@ interface CreateSiteImportResponse {
   };
 }
 
-interface DeleteImportResponse {
-  message: string;
-}
-
 export function useGetSiteImports(site: number) {
   return useQuery({
     queryKey: ["get-site-imports", site],
@@ -62,13 +58,9 @@ export function useDeleteSiteImport(site: number) {
 
   return useMutation({
     mutationFn: async (importId: string) => {
-      return await authedFetch<APIResponse<DeleteImportResponse>>(
-        `/delete-site-import/${site}/${importId}`,
-        undefined,
-        {
-          method: "DELETE",
-        }
-      );
+      return await authedFetch(`/delete-site-import/${site}/${importId}`, undefined, {
+        method: "DELETE",
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
