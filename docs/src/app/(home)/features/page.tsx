@@ -336,7 +336,7 @@ export default function FeaturesPage() {
                 Get started
               </TrackedButton>
               <TrackedButton
-                href="https://demo.rybbit.com/21"
+                href="https://demo.rybbit.com/1"
                 eventName="demo"
                 target="_blank"
                 rel="noopener noreferrer"

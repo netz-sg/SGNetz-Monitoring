@@ -167,7 +167,7 @@ export default function HomePage() {
               Get started
             </TrackedButton>
             <TrackedButton
-              href="https://demo.rybbit.com/21"
+              href="https://demo.rybbit.com/1"
               eventName="demo"
               target="_blank"
               rel="noopener noreferrer"
@@ -410,7 +410,7 @@ export default function HomePage() {
                     <p>
                       You can see for yourself by checking out our{" "}
                       <Link
-                        href="https://demo.rybbit.com/21"
+                        href="https://demo.rybbit.com/1"
                         className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300"
                       >
                         demo site
