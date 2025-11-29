@@ -1,6 +1,6 @@
 "use client";
 import { Card, CardContent, CardLoader } from "@/components/ui/card";
-import { Filter } from "lucide-react";
+import { User, Users } from "lucide-react";
 import { Tilt_Warp } from "next/font/google";
 import Link from "next/link";
 import { useGetOverview } from "../../../../../api/analytics/useGetOverview";
@@ -8,6 +8,7 @@ import { useGetOverviewBucketed } from "../../../../../api/analytics/useGetOverv
 import { BucketSelection } from "../../../../../components/BucketSelection";
 import { RybbitLogo } from "../../../../../components/RybbitLogo";
 import { Button } from "../../../../../components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../../components/ui/tooltip";
 import { authClient } from "../../../../../lib/auth";
 import { useStore } from "../../../../../lib/store";
 import { cn } from "../../../../../lib/utils";
@@ -99,9 +100,16 @@ export function MainSection() {
               <div className="flex items-center gap-2 md:justify-end">
                 {selectedStat === "users" && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Button variant="default" size="smIcon" onClick={() => setShowUsersSplit(!showUsersSplit)}>
-                      <Filter />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button variant="default" size="smIcon" onClick={() => setShowUsersSplit(!showUsersSplit)}>
+                          {showUsersSplit ? <Users /> : <User />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{showUsersSplit ? "Hide new vs returning users" : "Show new vs returning users"}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 )}
                 <BucketSelection />

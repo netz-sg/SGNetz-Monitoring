@@ -461,7 +461,7 @@ export function Chart({
 
         return (
           <ChartTooltip>
-            {rows.map((row: any, idx: number) => (
+            {rows.toReversed().map((row: any, idx: number) => (
               <div key={row.id} className={idx < rows.length - 1 ? "pb-0.5 mb-1.5" : ""}>
                 <div className={`px-2 text-xs font-semibold text-muted-foreground ${idx === 0 ? "pt-2" : ""}`}>
                   {row.label}
