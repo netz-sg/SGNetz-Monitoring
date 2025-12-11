@@ -54,10 +54,12 @@ export function useGetSessionsInfinite({
   userId,
   timeOverride,
   limit = 100,
+  refetchInterval,
 }: {
   userId?: string;
   timeOverride?: Time;
   limit?: number;
+  refetchInterval?: number;
 }) {
   const { time, site } = useStore();
 
@@ -88,6 +90,7 @@ export function useGetSessionsInfinite({
       return undefined;
     },
     staleTime: Infinity,
+    refetchInterval,
   });
 }
 

@@ -92,7 +92,7 @@ export function MainSection() {
                   className={cn("text-lg font-semibold flex items-center gap-1.5 opacity-75", tilt_wrap.className)}
                 >
                   <RybbitLogo width={20} height={20} />
-                  rybbit.com
+                  rybbit
                 </Link>
               </div>
             </div>
@@ -112,7 +112,9 @@ export function MainSection() {
                   </Tooltip>
                 </div>
               )}
-              <ExportButton />
+              <div className="hidden md:block">
+                <ExportButton />
+              </div>
               <div className="pl-1">
                 <BucketSelection />
               </div>

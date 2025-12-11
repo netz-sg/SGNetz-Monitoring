@@ -28,6 +28,7 @@ export function LiveUserCount() {
       pastMinutesEnd: 0,
     },
     limit: 25,
+    refetchInterval: 10000,
   });
 
   // Use the intersection observer hook
