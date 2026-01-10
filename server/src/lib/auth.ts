@@ -9,7 +9,7 @@ import { db } from "../db/postgres/postgres.js";
 import * as schema from "../db/postgres/schema.js";
 import { invitation, member, memberSiteAccess, user } from "../db/postgres/schema.js";
 import { DISABLE_SIGNUP, IS_CLOUD } from "./const.js";
-import { sendEmail, sendInvitationEmail, sendWelcomeEmail } from "./email/email.js";
+import { sendInvitationEmail, sendOtpEmail, sendWelcomeEmail } from "./email/email.js";
 
 dotenv.config();
 
@@ -55,52 +55,7 @@ const pluginList = [
   }),
   emailOTP({
     async sendVerificationOTP({ email, otp, type }) {
-      let subject, htmlContent;
-
-      if (type === "sign-in") {
-        subject = "Your Rybbit Sign-In Code";
-        htmlContent = `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #0c0c0c; color: #e5e5e5;">
-            <h2 style="color: #ffffff; font-size: 24px; margin-bottom: 20px;">Your Sign-In Code</h2>
-            <p>Here is your one-time password to sign in to Rybbit:</p>
-            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 6px; text-align: center; margin: 20px 0; font-size: 28px; letter-spacing: 4px; font-weight: bold; color: #10b981;">
-              ${otp}
-            </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this code, you can safely ignore this email.</p>
-          </div>
-        `;
-      } else if (type === "email-verification") {
-        subject = "Verify Your Email Address";
-        htmlContent = `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #0c0c0c; color: #e5e5e5;">
-            <h2 style="color: #ffffff; font-size: 24px; margin-bottom: 20px;">Verify Your Email</h2>
-            <p>Here is your verification code for Rybbit:</p>
-            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 6px; text-align: center; margin: 20px 0; font-size: 28px; letter-spacing: 4px; font-weight: bold; color: #10b981;">
-              ${otp}
-            </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this code, you can safely ignore this email.</p>
-          </div>
-        `;
-      } else if (type === "forget-password") {
-        subject = "Reset Your Password";
-        htmlContent = `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #0c0c0c; color: #e5e5e5;">
-            <h2 style="color: #ffffff; font-size: 24px; margin-bottom: 20px;">Reset Your Password</h2>
-            <p>You requested to reset your password for Rybbit. Here is your one-time password:</p>
-            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 6px; text-align: center; margin: 20px 0; font-size: 28px; letter-spacing: 4px; font-weight: bold; color: #10b981;">
-              ${otp}
-            </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p>If you didn't request this code, you can safely ignore this email.</p>
-          </div>
-        `;
-      }
-
-      if (subject && htmlContent) {
-        await sendEmail(email, subject, htmlContent);
-      }
+      await sendOtpEmail(email, otp, type);
     },
   }),
   // Add Cloudflare Turnstile captcha (cloud only)
