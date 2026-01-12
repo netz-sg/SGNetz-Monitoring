@@ -42,20 +42,14 @@ export const truncateString = (str: string, maxLength: number = 35): string => {
 
 const regionNamesInEnglish = new Intl.DisplayNames(["en"], { type: "region" });
 
-export const getCountryFlag = (countryCode: string): string => {
+export const getCountryFlagUrl = (countryCode: string): string => {
   if (!countryCode || countryCode.length !== 2) return "";
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+  return `https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`;
 };
 
-export const getCountryDisplay = (countryCode: string): string => {
+export const getCountryName = (countryCode: string): string => {
   try {
-    const flag = getCountryFlag(countryCode);
-    const name = regionNamesInEnglish.of(countryCode.toUpperCase()) || countryCode;
-    return `${flag} ${name}`;
+    return regionNamesInEnglish.of(countryCode.toUpperCase()) || countryCode;
   } catch {
     return countryCode;
   }

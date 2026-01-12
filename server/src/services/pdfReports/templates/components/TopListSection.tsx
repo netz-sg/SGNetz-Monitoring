@@ -7,10 +7,11 @@ interface TopListItemProps {
   percentage: number | null;
   count: number;
   barWidth: number;
-  favicon?: string;
+  iconUrl?: string;
+  iconSize?: { width: number; height: number };
 }
 
-const TopListItem = ({ value, percentage, count, barWidth, favicon }: TopListItemProps) => (
+const TopListItem = ({ value, percentage, count, barWidth, iconUrl, iconSize }: TopListItemProps) => (
   <div
     style={{
       display: "flex",
@@ -34,8 +35,14 @@ const TopListItem = ({ value, percentage, count, barWidth, favicon }: TopListIte
       }}
     />
     <div style={{ display: "flex", alignItems: "center", flex: "1", minWidth: "0", position: "relative", zIndex: 1 }}>
-      {favicon && (
-        <img src={favicon} alt="" width="16" height="16" style={{ marginRight: "8px", borderRadius: "2px" }} />
+      {iconUrl && (
+        <img
+          src={iconUrl}
+          alt=""
+          width={iconSize?.width ?? 16}
+          height={iconSize?.height ?? 16}
+          style={{ marginRight: "8px", borderRadius: "2px" }}
+        />
       )}
       <span
         style={{
@@ -66,9 +73,18 @@ export interface TopListSectionProps {
   items: MetricData[];
   renderLabel: (item: MetricData) => string;
   showFavicon?: boolean;
+  getIconUrl?: (item: MetricData) => string;
+  iconSize?: { width: number; height: number };
 }
 
-export const TopListSection = ({ title, items, renderLabel, showFavicon }: TopListSectionProps) => {
+export const TopListSection = ({
+  title,
+  items,
+  renderLabel,
+  showFavicon,
+  getIconUrl,
+  iconSize,
+}: TopListSectionProps) => {
   if (items.length === 0) return null;
 
   const ratio = items[0]?.percentage ? 100 / items[0].percentage : 1;
@@ -86,7 +102,12 @@ export const TopListSection = ({ title, items, renderLabel, showFavicon }: TopLi
       <div style={{ color: "#111827", fontSize: "14px", fontWeight: "600", marginBottom: "12px" }}>{title}</div>
       {items.map((item, index) => {
         const barWidth = (item.percentage ?? 0) * ratio;
-        const favicon = showFavicon ? `https://www.google.com/s2/favicons?domain=${item.value}&sz=16` : undefined;
+        let iconUrl: string | undefined;
+        if (getIconUrl) {
+          iconUrl = getIconUrl(item);
+        } else if (showFavicon) {
+          iconUrl = `https://www.google.com/s2/favicons?domain=${item.value}&sz=16`;
+        }
 
         return (
           <TopListItem
@@ -95,7 +116,8 @@ export const TopListSection = ({ title, items, renderLabel, showFavicon }: TopLi
             percentage={item.percentage}
             count={item.count}
             barWidth={barWidth}
-            favicon={favicon}
+            iconUrl={iconUrl}
+            iconSize={iconSize}
           />
         );
       })}

@@ -10,7 +10,8 @@ import {
   formatDuration,
   formatNumber,
   safeToFixed,
-  getCountryDisplay,
+  getCountryFlagUrl,
+  getCountryName,
   formatDateRange,
 } from "./components/index.js";
 
@@ -182,7 +183,9 @@ export const PdfReportTemplate = ({ reportData }: PdfReportTemplateProps): React
               <TopListSection
                 title="Top Countries"
                 items={topCountries}
-                renderLabel={item => getCountryDisplay(item.value)}
+                renderLabel={item => getCountryName(item.value)}
+                getIconUrl={item => getCountryFlagUrl(item.value)}
+                iconSize={{ width: 20, height: 15 }}
               />
             }
             right={<TopListSection title="Top Regions" items={topRegions} renderLabel={item => item.value} />}

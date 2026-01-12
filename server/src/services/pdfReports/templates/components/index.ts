@@ -8,7 +8,7 @@ export {
   formatNumber,
   safeToFixed,
   truncateString,
-  getCountryFlag,
-  getCountryDisplay,
+  getCountryFlagUrl,
+  getCountryName,
   formatDateRange,
 } from "./utils.js";
