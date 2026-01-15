@@ -16,6 +16,8 @@ dotenv.config();
 
 // Configure trusted origins based on BASE_URL environment variable
 // Falls back to localhost for development if BASE_URL not set
+// This fixes 401 errors when self-hosting behind a reverse proxy
+// by allowing authentication requests from the actual frontend origin
 const getTrustedOrigins = () => {
   const origins = ["http://localhost:3002"]; // Always include localhost for dev
   
