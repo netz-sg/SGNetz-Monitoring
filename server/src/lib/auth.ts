@@ -14,6 +14,18 @@ import { onboardingTipsService } from "../services/onboardingTips/onboardingTips
 
 dotenv.config();
 
+// Configure trusted origins based on BASE_URL environment variable
+// Falls back to localhost for development if BASE_URL not set
+const getTrustedOrigins = () => {
+  const origins = ["http://localhost:3002"]; // Always include localhost for dev
+  
+  if (process.env.BASE_URL) {
+    origins.push(process.env.BASE_URL);
+  }
+  
+  return origins;
+};
+
 const pluginList = [
   admin(),
   apiKey(),
@@ -117,7 +129,7 @@ export const auth = betterAuth({
     },
   },
   plugins: pluginList,
-  trustedOrigins: ["http://localhost:3002"],
+  trustedOrigins: getTrustedOrigins(),
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production", // don't mark Secure in dev
     defaultCookieAttributes: {
