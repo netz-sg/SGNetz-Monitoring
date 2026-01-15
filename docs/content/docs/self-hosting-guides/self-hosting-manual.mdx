@@ -241,17 +241,24 @@ Since Coolify uses Traefik instead of Caddy as proxy, some modifications have to
 
 - remove Caddy service and volumes
 - add network labels to all services
+- add the Coolify network definition
 - remove `build` and `ports` properties from backend and client services
 
 Here's a modified version of docker-compose that works on Coolify:
 
 ```yaml
+networks:
+  coolify:
+    external: true
+
 services:
   clickhouse:
     container_name: clickhouse
     image: clickhouse/clickhouse-server:25.4.2
     volumes:
       - clickhouse-data:/var/lib/clickhouse
+    networks:
+      - coolify
     configs:
       - source: clickhouse_network
         target: /etc/clickhouse-server/config.d/network.xml
@@ -286,6 +293,8 @@ services:
   postgres:
     image: postgres:17.4
     container_name: postgres
+    networks:
+      - coolify
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-frog}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-frog}
@@ -305,6 +314,8 @@ services:
   backend:
     image: ghcr.io/rybbit-io/rybbit-backend:${IMAGE_TAG:-latest}
     container_name: backend
+    networks:
+      - coolify
     environment:
       - NODE_ENV=production
       - CLICKHOUSE_HOST=http://clickhouse:8123
@@ -356,6 +367,8 @@ services:
   client:
     image: ghcr.io/rybbit-io/rybbit-client:${IMAGE_TAG:-latest}
     container_name: client
+    networks:
+      - coolify
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_BACKEND_URL=${BASE_URL}
@@ -461,6 +474,39 @@ For specific reverse proxy setups, see our detailed guides:
 These guides provide step-by-step instructions for integrating Rybbit with your existing infrastructure.
 
 ## Troubleshooting
+
+### 401 Unauthorized errors on /api/config or /api/auth/* endpoints
+
+If you're getting 401 Unauthorized errors when trying to access authentication endpoints or create your first admin account, this is usually caused by authentication origin mismatch. This commonly happens when running behind a reverse proxy.
+
+**Solution:**
+
+1. Ensure your `BASE_URL` environment variable exactly matches the URL you're accessing the frontend from:
+   ```bash
+   # In your .env file
+   BASE_URL=https://your-actual-domain.com  # Must match what users type in browser
+   ```
+
+2. For reverse proxy setups (Traefik, Nginx, Coolify), ensure ports are properly exposed:
+   ```bash
+   # In your .env file - needed for reverse proxy access
+   HOST_BACKEND_PORT="3001:3001"  # Not 127.0.0.1:3001:3001
+   HOST_CLIENT_PORT="3002:3002"   # Not 127.0.0.1:3002:3002
+   ```
+
+3. If you're using Coolify or another Docker-based platform, make sure the services are on the correct network and can communicate with each other.
+
+4. Verify the BASE_URL is set correctly by checking the backend logs:
+   ```bash
+   docker compose logs backend | grep "Configured trusted origins"
+   ```
+   You should see your domain listed in the trusted origins.
+
+5. After making changes, restart the services:
+   ```bash
+   docker compose down
+   docker compose up -d
+   ```
 
 ### Services won't start
 ```bash

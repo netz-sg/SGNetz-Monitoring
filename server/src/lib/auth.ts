@@ -15,22 +15,46 @@ import { onboardingTipsService } from "../services/onboardingTips/onboardingTips
 dotenv.config();
 
 // Configure trusted origins based on BASE_URL environment variable
-// Falls back to localhost for development if BASE_URL not set
-// This fixes 401 errors when self-hosting behind a reverse proxy
-// by allowing authentication requests from the actual frontend origin
+// For self-hosted deployments, we need to be permissive to support various reverse proxy setups
+// This fixes 401 errors when self-hosting behind a reverse proxy (Traefik, Nginx, Caddy, etc.)
+// by allowing authentication requests from multiple potential frontend origins
 const getTrustedOrigins = () => {
-  const origins = ["http://localhost:3002"]; // Always include localhost for dev
+  const origins = [
+    "http://localhost:3002",  // Local development
+    "http://localhost:3000",  // Alternative local dev port
+  ];
   
   if (process.env.BASE_URL) {
     try {
       // Validate BASE_URL is a valid URL before adding it
-      new URL(process.env.BASE_URL);
+      const baseUrl = new URL(process.env.BASE_URL);
       origins.push(process.env.BASE_URL);
+      
+      // Also add the URL without trailing slash if it has one
+      const urlWithoutTrailingSlash = process.env.BASE_URL.replace(/\/$/, '');
+      if (urlWithoutTrailingSlash !== process.env.BASE_URL) {
+        origins.push(urlWithoutTrailingSlash);
+      }
+      
+      // Add both http and https variants for the hostname to support reverse proxy scenarios
+      // where the proxy terminates SSL and forwards as http internally
+      if (baseUrl.protocol === 'https:') {
+        origins.push(`http://${baseUrl.host}`);
+      } else if (baseUrl.protocol === 'http:') {
+        origins.push(`https://${baseUrl.host}`);
+      }
     } catch (error) {
       console.error(`Invalid BASE_URL environment variable: ${process.env.BASE_URL}. Skipping...`);
     }
   }
   
+  // For self-hosted deployments without BASE_URL, allow requests from the internal client container
+  // This helps with Docker Compose setups where the client container makes requests
+  if (!IS_CLOUD) {
+    origins.push("http://client:3002");
+  }
+  
+  console.log("Configured trusted origins for authentication:", origins);
   return origins;
 };
 
