@@ -22,7 +22,13 @@ const getTrustedOrigins = () => {
   const origins = ["http://localhost:3002"]; // Always include localhost for dev
   
   if (process.env.BASE_URL) {
-    origins.push(process.env.BASE_URL);
+    try {
+      // Validate BASE_URL is a valid URL before adding it
+      new URL(process.env.BASE_URL);
+      origins.push(process.env.BASE_URL);
+    } catch (error) {
+      console.error(`Invalid BASE_URL environment variable: ${process.env.BASE_URL}. Skipping...`);
+    }
   }
   
   return origins;
